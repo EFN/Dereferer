@@ -13,24 +13,21 @@ headers = IO()
 
 def serveFrontPage():
     log(INFO, 'Serving frontpage')
-    f = open('top.html', 'r')
-    if not f:
-        log(DEBUG, 'Serving frontpage as 404')
-        http_response = """\
-HTTP/1.1 404 Not found
-Content-type: text/plain;charset=utf-8
-
-Not found
-"""
-    else:
+    response = HttpResponse()
+    try:
+        f = open('top.html', 'r')
         log(DEBUG, 'Serving frontpage from file')
         top=f.read()
-        http_response = """\
-HTTP/1.1 200 Not found
-Content-type: text/html;charset=utf-8
-
-%s""" % (top)
-    return http_response
+        response.setCode(200)
+        response.setHeader('Content', 'text/html;charset=utf-8')
+        response.setContent(top)
+        f.close()
+    except:
+        log(DEBUG, 'Serving frontpage as 404')
+        response.setHeader('Content', 'text/plain;charset=utf-8')
+        response.setCode(404)
+        response.setContent('Not found')
+    return response
 
 def serveInfoPage(req):
     log(INFO, 'Serving infopage')
@@ -132,21 +129,18 @@ while True:
 
       res="%s -> %s" % (url, l)
 
-      http_response = """\
-HTTP/1.1 307 Temporary Redirect
-Location: %s
-Content-type: text/plain;charset=utf-8
+      http_response = HttpResponse()
+      http_response.setCode(307)
+      http_response.setHeader('Content-type' , 'text/plain;charset=utf-8')
+      http_response.setHeader('Location' , l)
+      http_response.setContent(res)
 
-%s
-""" % (l, res)
   except Unresolvable as e:
     log (WARNING,'Unresolvable ' + str(e))
-    http_response = """\
-HTTP/1.1 400 Bad request
-Content-type: text/plain;charset=utf-8
-
-Bad request
-"""
+    http_response = HttpResponse()
+    http_response.setCode(400)
+    http_response.setHeader('Content-type' , 'text/plain;charset=utf-8')
+    http_response.setContent('Bad request')
   except Exception as e:
     log (ERROR,'Unhandled error ' + str(e))
     http_response = HttpResponse()
@@ -154,6 +148,5 @@ Bad request
     http_response.setHeader('Content-type' , 'text/plain;charset=utf-8')
     http_response.setContent('Bad request')
 
-  resp=HttpResponse.fromStr(str(http_response))
-  client_connection.sendall(str(resp).encode())
+  client_connection.sendall(str(http_response).encode())
   client_connection.close()
