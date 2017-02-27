@@ -22,7 +22,8 @@ class HttpResponse:
     resps={
       200 : 'OK',
       307 : 'Temporary Redirect',
-      400 : 'Bad request'
+      400 : 'Bad request',
+      404 : 'Not found'
       }
     return 'HTTP/1.1 %d %s' % (code, resps[code])
   
@@ -59,5 +60,4 @@ class HttpResponse:
 
     resp += '\n'
     resp += self.content
-    resp = resp[:-1]
     return resp
